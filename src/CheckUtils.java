@@ -1,8 +1,58 @@
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CheckUtils {
     public static void main(String[] args) {
         checkSootUsageByBatch();
+    }
+
+    static void checkFailTests() {
+        // output directory
+
+        String project = "D:\\EXPspace\\FaultLocalization\\EXP\\buggyProjects-original\\compress";
+        File base = new File(project);
+        for(File f : base.listFiles()) {
+            if(!f.isDirectory()) {
+                continue;
+            }
+            File properties = new File(f.getAbsolutePath() + "\\defects4j.build.properties");
+            List<String> testPaths = new ArrayList<>();
+            if(properties.exists()) {
+                try {
+                    FileReader reader = new FileReader(properties);
+                    BufferedReader bReader = new BufferedReader(reader);
+                    String tmp = "", testBase = "";
+                    while((tmp = bReader.readLine()) != null) {
+                        if(tmp.startsWith("d4j.dir.src.tests")) {
+                            tmp = tmp.trim();
+                            tmp = tmp.substring(tmp.indexOf("=")+1);
+                            testBase = tmp;
+                        }
+                        if(tmp.startsWith("d4j.tests.trigger")) {
+                            tmp = tmp.trim();
+                            tmp = tmp.substring(tmp.indexOf("=")+1);
+                            String[] tests = tmp.split(",");
+                            for(String test : tests) {
+                                String location =  test.substring(0,test.indexOf("::"));
+                                location = f.getAbsolutePath() + "/" + testBase + "/" + location.replaceAll("\\.", "/");
+                                File target = new File(location);
+                                if(!target.exists()) {
+                                    System.out.println("Not exist : " + location);
+                                } else {
+
+                                }
+                            }
+                        }
+                    }
+                    bReader.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     static void checkSootUsageByBatch() {
