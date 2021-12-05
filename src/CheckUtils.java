@@ -1,22 +1,35 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.util.*;
 
 public class CheckUtils {
     public static void main(String[] args) {
-        checkSootUsageByBatch();
+        //checkSootUsageByBatch();
+        checkFailTests();
+        /*
+        Integer[] tmp = {1,3,6,12,17,21,22,26,28};
+        Set<Integer> s = new HashSet<Integer>(Arrays.asList(tmp));
+        for(int i=1; i<=38; i++) {
+            if(!s.contains(i)) {
+                System.out.print(i+",");
+            }
+        }
+        */
     }
 
     static void checkFailTests() {
         // output directory
+        String output_base = "/Users/yumeng/Workspace/FaultLocalization/EXP/buggyProjects-original/output/jsoup";
 
-        String project = "D:\\EXPspace\\FaultLocalization\\EXP\\buggyProjects-original\\compress";
+        String project = "/Users/yumeng/Workspace/FaultLocalization/EXP/buggyProjects-original/jsoup";
         File base = new File(project);
         for(File f : base.listFiles()) {
             if(!f.isDirectory()) {
                 continue;
             }
-            File properties = new File(f.getAbsolutePath() + "\\defects4j.build.properties");
+            File properties = new File(f.getAbsolutePath() + "/defects4j.build.properties");
+            String bid = f.getName();
+            bid = bid.substring(bid.indexOf("_")+1, bid.lastIndexOf("_"));
             List<String> testPaths = new ArrayList<>();
             if(properties.exists()) {
                 try {
@@ -35,12 +48,17 @@ public class CheckUtils {
                             String[] tests = tmp.split(",");
                             for(String test : tests) {
                                 String location =  test.substring(0,test.indexOf("::"));
-                                location = f.getAbsolutePath() + "/" + testBase + "/" + location.replaceAll("\\.", "/");
+                                String testName = test.substring(test.indexOf("::")+2);
+                                location = f.getAbsolutePath() + "/" + testBase + "/" + location.replaceAll("\\.", "/") + ".java";
                                 File target = new File(location);
                                 if(!target.exists()) {
                                     System.out.println("Not exist : " + location);
                                 } else {
-
+                                    File output_dir = new File(output_base + "/" + bid);
+                                    output_dir.mkdir();
+                                    File output_file = new File(output_dir.getAbsolutePath() + "/" + testName + ".java");
+                                    Files.copy(target.toPath(), output_file.toPath());
+                                    System.out.println("copy " + location + " to " + output_file.getAbsolutePath());
                                 }
                             }
                         }
